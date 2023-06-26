@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  gotify:
+    image: gotify/server:latest
+    container_name: gotify
+    hostname: gotify.${DOMAIN_NAME}
+    restart: unless-stopped
+    secrets:
+      - admin_password
+    env_file: .env
+    environment:
+      - TZ=Europe/Stockholm
+      - GOTIFY_DEFAULTUSER_PASS=/run/secrets/admin_password
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.gotify.entrypoints=https
+      - traefik.http.routers.gotify.rule=Host(`gotify.${DOMAIN_NAME}`)
+      - traefik.http.routers.gotify.service=gotify
+      - traefik.http.routers.gotify.tls=true
+      - traefik.http.routers.gotify.tls.certresolver=cloudflare
+      - traefik.http.services.gotify.loadbalancer.server.port=80
+      - traefik.http.routers.gotify.middlewares=default@file
+    networks:
+      - traefik
+    volumes:
+      - ./data/:/app/data/
+
+networks:
+  traefik:
+    external:
+      name: traefik
+
+secrets:
+  admin_password:
+    file: ./secrets/ADMIN_PASSWORD.secret
