@@ -1,2 +1,3 @@
 .env
 secrets/ADMIN_PASSWORD.secret
+data/*
